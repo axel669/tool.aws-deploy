@@ -1,0 +1,21 @@
+{
+  "name": "@axel669/aws-deploy",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "aws-deploy": "index.mjs"
+  },
+  "author": "Axel",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-lambda": "^3.90.0",
+    "@aws-sdk/client-s3": "^3.92.0",
+    "adm-zip": "^0.5.9",
+    "yaml": "^2.1.0"
+  }
+}
