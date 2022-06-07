@@ -4,6 +4,7 @@ import fs from "fs/promises"
 
 import yaml from "yaml"
 import deployLambda from "./deploy/lambda.mjs"
+import deployS3 from "./deploy/s3.mjs"
 
 const [, , ...targets] = process.argv
 
@@ -21,6 +22,11 @@ const types = {
     async func(id, config, full) {
         await deployLambda(config, config.functions[id], full)
     },
+    async api() {
+    },
+    async s3(id, config) {
+        await deployS3(config, config.buckets[id])
+    }
 }
 
 async function deployTargets(config, targets, full) {
