@@ -25,8 +25,9 @@ const sleep = (time) => new Promise(
     resolve => setTimeout(resolve, time)
 )
 
-const setupLambda = async (svc, args) => {
-    const { func, runtime } = args
+const setupLambda = async (svc, config, args) => {
+    const { name, runtime } = args
+    const func = `${config.prefix}${name}`
 
     const funcInfo = await svc.lambda.getFunction({
         FunctionName: func
@@ -37,9 +38,10 @@ const setupLambda = async (svc, args) => {
 
         const role = `${func}-role`
 
-        const roleInfo = await setupRole(svc, { role })
+        const roleInfo = await setupRole(svc, config, { role })
         await setupInlinePolicy(
             svc,
+            config,
             {
                 role,
                 name: `${func}-logging`,
@@ -82,6 +84,6 @@ const setupLambda = async (svc, args) => {
 }
 
 export default logging(
-    args => `Check Lambda: ${args.func}`,
+    args => `Check Lambda: ${args.name}`,
     setupLambda
 )

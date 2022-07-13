@@ -9,11 +9,11 @@ import Lambda from "./lambda.mjs"
 //     return value
 // }
 const logging = (open, func) =>
-    async (svc, args) => {
+    async (svc, config, args) => {
         console.group(
             open(args)
         )
-        const value = await func(svc, args)
+        const value = await func(svc, config, args)
         console.groupEnd()
         return value
     }

@@ -12,7 +12,7 @@ const stsDefault = policyJSON({
     "Action": "sts:AssumeRole"
 })
 
-const setupRole = async (svc, args) => {
+const setupRole = async (svc, config, args) => {
     const { role } = args
 
     const awsArgs = {

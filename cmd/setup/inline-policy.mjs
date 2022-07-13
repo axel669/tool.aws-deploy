@@ -1,6 +1,6 @@
 import { logging } from "../../internal/api.mjs"
 
-const setupInlinePolicy = async (svc, args) => {
+const setupInlinePolicy = async (svc, config, args) => {
     const { role, name, document } = args
 
     const awsArgs = {
