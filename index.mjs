@@ -51,7 +51,7 @@ const config = yaml.parse(
 )
 
 const deployType = {
-    func: async (id, config) => {
+    lambda: async (id, config) => {
         const funcInfo = config.functions[id]
         await cmds.deploy.lambda(svc, config, funcInfo)
     },
