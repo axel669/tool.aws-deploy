@@ -5,39 +5,87 @@ import fs from "fs/promises"
 import yaml from "yaml"
 import Service from "./internal/api.mjs"
 import cmds from "./cmd/cmds.mjs"
-// import deployLambda from "./deploy/lambda.mjs"
-// import deployS3 from "./deploy/s3.mjs"
 
-const [, , command, ...targets] = process.argv
+const [, , envFile, command, ...targets] = process.argv
+
+const flat = (obj, parent = "") =>
+    Object.entries(obj)
+    .reduce(
+        (list, [key, value]) => {
+            const name = `${parent}.${key}`
+            if (typeof value === "object") {
+                list.push(
+                    ...flat(value, name)
+                )
+                return list
+            }
+
+            list.push([name, value])
+            return list
+        },
+        []
+    )
+
+const env = Object.fromEntries(
+    flat(
+        (envFile === "-")
+            ? {}
+            : yaml.parse(
+                await fs.readFile(envFile, "utf8")
+            )
+    )
+)
 
 const config = yaml.parse(
     await fs.readFile("aws-deploy.yml", "utf8"),
     function (key, value) {
         if (typeof value === "string" && value.startsWith("$$") === true) {
-            return process.env[value.slice(2)]
+            const name = value.slice(2)
+            if (env.hasOwnProperty(name) === true) {
+                return env[name]
+            }
+            return process.env[name]
         }
         return value
     }
 )
 
 const deployType = {
-    func: async (id) => {
+    func: async (id, config) => {
         const funcInfo = config.functions[id]
         await cmds.deploy.lambda(svc, config, funcInfo)
+    },
+    s3: async (id, config) => {
+        const bucketInfo = config.buckets[id]
+        await cmds.deploy.s3(svc, config, bucketInfo)
     }
 }
 const commands = {
     setup: async () => {
-        for (const funcInfo of Object.values(config.functions)) {
+        const functions = Object.values(config.functions ?? {})
+        const buckets = Object.values(config.buckets ?? {})
+
+        for (const funcInfo of functions) {
             await cmds.setup.lambda(svc, config, funcInfo)
+        }
+        for (const bucketInfo of buckets) {
+            await cmds.setup.s3(svc, config, bucketInfo)
+        }
+    },
+    "dev-deploy": async () => {
+        config.full = false
+        for (const target of targets) {
+            const [type, id] = target.split(":")
+            await deployType[type](id, config)
         }
     },
     deploy: async () => {
-        for (const target of targets) {
+        config.full = true
+        for (const target of config.deployment.resources) {
             const [type, id] = target.split(":")
-            await deployType[type](id)
+            await deployType[type](id, config)
         }
-    },
+    }
 }
 
 if (command === "help") {
@@ -58,37 +106,3 @@ const svc = await Service({
 })
 
 commands[command](svc, config)
-
-// const types = {
-//     async func(id, config, full) {
-//         await deployLambda(config, config.functions[id], full)
-//     },
-//     async api() {
-//     },
-//     async s3(id, config) {
-//         await deployS3(config, config.buckets[id])
-//     }
-// }
-
-// async function deployTargets(config, targets, full) {
-//     for (const target of targets) {
-//         const [type, id] = target.split(":")
-//         await types[type](id, config, full)
-//     }
-// }
-
-// async function deploy(config, targets) {
-//     if (targets.length === 0) {
-//         console.log("Deployment targets not spicified")
-//         return
-//     }
-
-//     if (targets[0] === "full") {
-//         await deployTargets(config, config.deployment, true)
-//         return
-//     }
-
-//     await deployTargets(config, targets, false)
-// }
-
-// deploy(config, targets)
