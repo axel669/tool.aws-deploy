@@ -7,7 +7,7 @@ import admzip from "adm-zip"
 import { policyJSON } from "../../internal/api.mjs"
 
 const updateConfig = async (svc, current, config) => {
-    const { func, runtime, timeout, memory, handler } = config
+    const { runtime, timeout, memory, handler } = config
 
     const needsUpdate = (
         timeout !== current.Timeout
@@ -23,7 +23,7 @@ const updateConfig = async (svc, current, config) => {
 
     console.log("Updating config...")
     await svc.lambda.updateFunctionConfiguration({
-        FunctionName: func,
+        FunctionName: current.FunctionName,
         Runtime: runtime,
         Timeout: timeout,
         MemorySize: memory,
@@ -35,7 +35,7 @@ const updateConfig = async (svc, current, config) => {
             delay: 2,
             maxWaitTime: 60
         },
-        { FunctionName: func }
+        { FunctionName: current.FunctionName }
     )
 }
 const updateCode = async (svc, current, code, ZipFile) => {
@@ -47,7 +47,7 @@ const updateCode = async (svc, current, code, ZipFile) => {
     console.log("Updating code...")
     await svc.lambda.updateFunctionCode({
         ZipFile,
-        FunctionName: func,
+        FunctionName: current.FunctionName,
     })
 
     await waitUntilFunctionUpdated(
@@ -56,7 +56,7 @@ const updateCode = async (svc, current, code, ZipFile) => {
             delay: 2,
             maxWaitTime: 60
         },
-        { FunctionName: func }
+        { FunctionName: current.FunctionName }
     )
 }
 const updatePolicy = async (svc, func, policy) => {
@@ -92,6 +92,39 @@ const updatePolicy = async (svc, func, policy) => {
     })
 }
 
+const updateAlias = async (svc, config, func, codeSHA) => {
+    const depInfo = config.deployment.lambda ?? {}
+
+    const skipUpdate = (
+        config.full === false
+        || (
+            depInfo.newAlias === undefined
+            && depInfo.updateAlias === undefined
+        )
+    )
+    if (skipUpdate === true) {
+        console.log("Skipping alias update")
+        return
+    }
+
+    console.log("Updating aliases")
+    const versionInfo = await svc.lambda.publishVersion({
+        FunctionName: func,
+        CodeSha256: codeSHA,
+    })
+
+    await svc.lambda.createAlias({
+        FunctionName: func,
+        FunctionVersion: versionInfo.Version,
+        Name: depInfo.newAlias.replace(/\./g, "-")
+    })
+    await svc.lambda.updateAlias({
+        FunctionName: func,
+        FunctionVersion: versionInfo.Version,
+        Name: depInfo.updateAlias
+    })
+}
+
 const deployLambda = async (svc, config, args) => {
     const {
         name,
@@ -104,7 +137,7 @@ const deployLambda = async (svc, config, args) => {
     } = args
     const func = `${config.prefix}${name}`
 
-    console.group(`Deploying ${func}`)
+    console.group(`Deploying lambda:${func}`)
 
     const zip = new admzip()
     zip.addLocalFolder(dir)
@@ -125,7 +158,7 @@ const deployLambda = async (svc, config, args) => {
     await updateConfig(
         svc,
         current.Configuration,
-        { func, memory, handler, runtime, timeout }
+        { memory, handler, runtime, timeout }
     )
     await updateCode(svc, current.Configuration, codeSHA, ZipFile)
     await updatePolicy(
@@ -133,6 +166,8 @@ const deployLambda = async (svc, config, args) => {
         func,
         policyJSON(...iam)
     )
+
+    await updateAlias(svc, config, func, codeSHA)
 
     console.groupEnd()
 }

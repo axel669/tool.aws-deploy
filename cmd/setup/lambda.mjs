@@ -25,6 +25,38 @@ const sleep = (time) => new Promise(
     resolve => setTimeout(resolve, time)
 )
 
+const createFunc = async (svc, roleInfo, func, runtime) => {
+    //  aws is stupid af, tons of extra wait time is needed to use
+    //  the new role but no mechanism is provided to know when it will be
+    //  usable, so we have to retry function creation until it works.
+    //  30s should be enough time, but that's only based on what I have seen
+    //  up to this point.
+    const start = Date.now()
+    let attempts = 0
+    while ((Date.now() - start) < 30000) {
+        attempts = attempts + 1
+
+        console.log("Attempt", attempts)
+        const createdFunc = await svc.lambda.createFunction({
+            FunctionName: func,
+            Role: roleInfo.Role.Arn,
+            Runtime: runtime,
+            Handler: "index.handler",
+            Code,
+        })
+
+        if (createdFunc instanceof Error) {
+            throw createdFunc
+        }
+
+        if (createdFunc !== null) {
+            return createdFunc
+        }
+
+        await sleep(2500)
+    }
+}
+
 const setupLambda = async (svc, config, args) => {
     const { name, runtime } = args
     const func = `${config.prefix}${name}`
@@ -49,34 +81,15 @@ const setupLambda = async (svc, config, args) => {
             }
         )
 
-        //  aws is stupid af, tons of extra wait time is needed to use
-        //  the new role but no mechanism is provided to know when it will be
-        //  usable, so we have to retry function creation until it works.
-        //  30s should be enough time, but that's only based on what I have seen
-        //  up to this point.
-        const start = Date.now()
-        let attempts = 0
-        while ((Date.now() - start) < 30000) {
-            attempts = attempts + 1
+        await createFunc(svc, roleInfo, func, runtime)
 
-            console.log("Attempt", attempts)
-            const createdFunc = await svc.lambda.createFunction({
+        for (const alias of config.lambda.alias ?? []) {
+            console.log(`Creating alias: ${alias}`)
+            await svc.lambda.createAlias({
                 FunctionName: func,
-                Role: roleInfo.Role.Arn,
-                Runtime: runtime,
-                Handler: "index.handler",
-                Code,
+                FunctionVersion: "$LATEST",
+                Name: alias.replace(/\./g, "-")
             })
-
-            if (createdFunc instanceof Error) {
-                throw createdFunc
-            }
-
-            if (createdFunc !== null) {
-                return createdFunc
-            }
-
-            await sleep(2500)
         }
     }
 
