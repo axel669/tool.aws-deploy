@@ -1,10 +1,8 @@
 import fs from "fs"
 import crypto from "crypto"
 
-import { S3 } from "@aws-sdk/client-s3"
 import glob from "fast-glob"
-
-import { policyJSON } from "../../internal/api.mjs"
+import mime from "mime-types"
 
 async function amap(source, map) {
     const result = []
@@ -93,7 +91,8 @@ const syncBucket = async (svc, name, dir) => {
         await svc.s3.putObject({
             Bucket: name,
             Key: file,
-            Body: fs.readFileSync(`${dir}/${file}`)
+            Body: fs.readFileSync(`${dir}/${file}`),
+            ContentType: mime.lookup(file) || "application/octet-stream",
         })
     }
     for (const file of remove) {

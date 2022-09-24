@@ -4,6 +4,7 @@ import Code from "./lambda-code.mjs"
 import IAM from "./iam.mjs"
 import Lambda from "./lambda.mjs"
 import S3 from "./s3.mjs"
+import STS from "./sts.mjs"
 
 const logging = (open, func) =>
     async (svc, config, args) => {
@@ -26,14 +27,16 @@ export default async (init) => {
     const iam = IAM(init)
     const lambda = Lambda(init)
     const s3 = S3(init)
+    const sts = STS(init)
 
     console.log("Loading account info...")
-    const userInfo = await iam.getUser({})
+    const identity = await sts.getCallerIdentity()
     return {
         iam,
         lambda,
         s3,
+        sts,
         region: init.region,
-        account: userInfo.User.Arn.split(":")[4]
+        account: identity.Account
     }
 }
