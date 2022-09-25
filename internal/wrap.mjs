@@ -2,7 +2,7 @@ const fwrap = (source, func, errorInfo) => {
     const {
         error,
         message,
-        def = null
+        default:def = null
     } = errorInfo
     return async (args) => {
         try {
