@@ -4,6 +4,8 @@ import crypto from "crypto"
 import glob from "fast-glob"
 import mime from "mime-types"
 
+import { policyJSON } from "../../internal/api.mjs"
+
 async function amap(source, map) {
     const result = []
     for (const item of source) {
@@ -104,14 +106,38 @@ const syncBucket = async (svc, name, dir) => {
     }
 }
 
+const syncPolicy = async (svc, name, policy) => {
+    const info = await svc.s3.getBucketPolicy({ Bucket: name })
+    const json = policyJSON(...policy)
+
+    if (info.Policy === json) {
+        console.log("Policy unchanged")
+        return
+    }
+
+    if (json === null) {
+        console.log("Removing policy")
+        await svc.s3.deleteBucketPolicy({ Bucket: name })
+        return
+    }
+
+    console.log("Updating bucket policy")
+    await svc.s3.putBucketPolicy({
+        Bucket: name,
+        Policy: json
+    })
+}
+
 export default async function s3sync(svc, config, bucket) {
     const {
         name,
         dir,
+        policy = [],
     } = bucket
 
-    console.group(`Deploying s3:${name}`)
+    console.group(`Deploying s3:${name} (${name})`)
 
     await syncBucket(svc, name, dir)
+    await syncPolicy(svc, name, policy)
     console.groupEnd()
 }
