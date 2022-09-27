@@ -14,6 +14,10 @@ const s3 = wrap(
             error: "NoSuchBucketPolicy",
             default: { Policy: null }
         },
+        getBucketWebsite: {
+            error: "NoSuchBucketWebsite",
+            default: null
+        },
     }
 )
 

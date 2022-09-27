@@ -1,6 +1,6 @@
 {
   "name": "@axel669/aws-deploy",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "",
   "main": "index.mjs",
   "type": "module",

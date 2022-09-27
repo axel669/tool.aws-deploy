@@ -128,16 +128,55 @@ const syncPolicy = async (svc, name, policy) => {
     })
 }
 
+const syncWebsite = async (svc, name, website) => {
+    const s3site = await svc.s3.getBucketWebsite({ Bucket: name })
+    // console.log(s3site?.IndexDocument)
+    // console.log(website)
+
+    const unchanged = (
+        website?.index === s3site?.IndexDocument?.Suffix
+        && website?.error === s3site?.ErrorDocument?.Suffix
+    )
+    if (unchanged === true) {
+        console.log("Website unchanged")
+        return
+    }
+
+    if (website === null) {
+        console.log("Removing website")
+        await svc.s3.deleteBucketWebsite({ Bucket: name })
+        return
+    }
+
+    console.log("Updating website")
+
+    const errorConfig =
+        (website.error === undefined)
+        ? {}
+        : {
+            ErrorDocument: { Suffix: website.error }
+        }
+    await svc.s3.putBucketWebsite({
+        Bucket: name,
+        WebsiteConfiguration: {
+            IndexDocument: { Suffix: website.index },
+            ...errorConfig,
+        }
+    })
+}
+
 export default async function s3sync(svc, config, bucket) {
     const {
         name,
         dir,
         policy = [],
+        website = null,
     } = bucket
 
     console.group(`Deploying s3:${name} (${name})`)
 
     await syncBucket(svc, name, dir)
     await syncPolicy(svc, name, policy)
+    await syncWebsite(svc, name, website)
     console.groupEnd()
 }
