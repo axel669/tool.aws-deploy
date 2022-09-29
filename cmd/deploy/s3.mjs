@@ -130,8 +130,6 @@ const syncPolicy = async (svc, name, policy) => {
 
 const syncWebsite = async (svc, name, website) => {
     const s3site = await svc.s3.getBucketWebsite({ Bucket: name })
-    // console.log(s3site?.IndexDocument)
-    // console.log(website)
 
     const unchanged = (
         website?.index === s3site?.IndexDocument?.Suffix
