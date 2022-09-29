@@ -1,7 +1,9 @@
-import { policyJSON, Code, logging } from "../../internal/api.mjs"
+import { policyJSON, Code, logging } from "#internal"
 
-import setupRole from "./role.mjs"
-import setupInlinePolicy from "./inline-policy.mjs"
+import { svc, config } from "#env"
+
+import setupRole from "#shared/role"
+import setupInlinePolicy from "#shared/inline-policy"
 
 const lambdaLogging = (name, region, account) => policyJSON(
     {
@@ -25,7 +27,7 @@ const sleep = (time) => new Promise(
     resolve => setTimeout(resolve, time)
 )
 
-const createFunc = async (svc, roleInfo, func, runtime) => {
+const createFunc = async (roleInfo, func, runtime) => {
     //  aws is stupid af, tons of extra wait time is needed to use
     //  the new role but no mechanism is provided to know when it will be
     //  usable, so we have to retry function creation until it works.
@@ -57,7 +59,7 @@ const createFunc = async (svc, roleInfo, func, runtime) => {
     }
 }
 
-const setupLambda = async (svc, config, args) => {
+const setupLambda = async (args) => {
     const { name, runtime } = args
     const func = `${config.prefix}${name}`
 
@@ -70,7 +72,7 @@ const setupLambda = async (svc, config, args) => {
 
         const role = `${func}-role`
 
-        const roleInfo = await setupRole(svc, config, { role })
+        const roleInfo = await setupRole({ role })
         await setupInlinePolicy(
             svc,
             config,
@@ -81,7 +83,7 @@ const setupLambda = async (svc, config, args) => {
             }
         )
 
-        await createFunc(svc, roleInfo, func, runtime)
+        await createFunc(roleInfo, func, runtime)
     }
 
     return funcInfo

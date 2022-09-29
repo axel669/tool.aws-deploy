@@ -1,74 +1,59 @@
-import path from "path"
+import crypto from "crypto"
 
-import {
-    Lambda,
-    LambdaClient,
-    waitUntilFunctionUpdated
-} from "@aws-sdk/client-lambda"
 import admzip from "adm-zip"
 
-export default async function deployLambda(config, info, full) {
-    const {
-        region,
-        prodTag,
-        alias,
-        skipVersioning = false,
-        profile = "default",
-    } = config
-    const {
-        dir,
-    } = info
-    const lambda = new Lambda({
-        region,
-        profile,
-    })
-    const waiterClient = new LambdaClient({
-        region,
-        profile,
-    })
+import { config, svc } from "#env"
 
-    const FunctionName = path.basename(dir)
+import { policyJSON } from "#internal"
+
+import setup from "./lambda/setup.mjs"
+import updateAlias from "./lambda/update-alias.mjs"
+import updateCode from "./lambda/update-code.mjs"
+import updateConfig from "./lambda/update-config.mjs"
+import updatePolicy from "./lambda/update-policy.mjs"
+
+const deployLambda = async (lambda) => {
+    await setup(lambda)
+
+    const {
+        name,
+        runtime,
+        dir,
+        timeout = 5,
+        memory = 128,
+        iam = [],
+        handler = "index.handler",
+    } = lambda
+    const func = `${config.prefix}${name}`
+
+    console.group(`Deploying lambda:${func}`)
+
     const zip = new admzip()
     zip.addLocalFolder(dir)
     const ZipFile = zip.toBuffer()
 
-    console.group(FunctionName)
+    const codeSHA = crypto.createHash("sha256")
+        .update(ZipFile)
+        .digest("base64")
 
-    console.log("uploading code")
-    const status = await lambda.updateFunctionCode({
-        FunctionName,
-        ZipFile,
+    const current = await svc.lambda.getFunction({
+        FunctionName: func
     })
-    const { CodeSha256 } = status
 
-    if (skipVersioning === true || full !== true) {
-        return
-    }
-
-    await waitUntilFunctionUpdated(
-        {
-            client: waiterClient,
-            delay: 2,
-            maxWaitTime: 60
-        },
-        { FunctionName }
+    await updateConfig(
+        svc,
+        current.Configuration,
+        { memory, handler, runtime, timeout }
     )
-    console.log("versioning")
-    const versionInfo = await lambda.publishVersion({
-        FunctionName,
-        CodeSha256,
-    })
+    await updateCode(current.Configuration, codeSHA, ZipFile)
+    await updatePolicy(
+        func,
+        policyJSON(...iam)
+    )
 
-    console.log("updating aliases")
-    await lambda.createAlias({
-        FunctionName,
-        FunctionVersion: versionInfo.Version,
-        Name: alias.replace(/\./g, "-")
-    })
-    await lambda.updateAlias({
-        FunctionName,
-        FunctionVersion: versionInfo.Version,
-        Name: prodTag,
-    })
+    await updateAlias(func, codeSHA)
+
     console.groupEnd()
 }
+
+export default deployLambda

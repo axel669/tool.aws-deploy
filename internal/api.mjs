@@ -8,11 +8,11 @@ import STS from "./sts.mjs"
 import APIG from "./apig.mjs"
 
 const logging = (open, func) =>
-    async (svc, config, args) => {
+    async (args) => {
         console.group(
             open(args)
         )
-        const value = await func(svc, config, args)
+        const value = await func(args)
         console.groupEnd()
         return value
     }

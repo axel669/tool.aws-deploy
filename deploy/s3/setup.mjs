@@ -1,8 +1,9 @@
-import { logging } from "../../internal/api.mjs"
+import { svc } from "#env"
+import { logging } from "#internal"
 
-const setupBucket = async (svc, config, args) => {
+const setupBucket = async (bucketInfo) => {
     const bucket = await svc.s3.getBucketAcl({
-        Bucket: args.name,
+        Bucket: bucketInfo.name,
     })
 
     if (bucket !== null) {
@@ -11,11 +12,11 @@ const setupBucket = async (svc, config, args) => {
 
     console.log("Bucket does not exist, creating")
     await svc.s3.createBucket({
-        Bucket: args.name,
+        Bucket: bucketInfo.name,
     })
 }
 
 export default logging(
-    (args) => `Check bucket: ${args.name}`,
+    (bucket) => `Check bucket: ${bucket.name}`,
     setupBucket
 )

@@ -1,6 +1,6 @@
 import { logging } from "../../internal/api.mjs"
 
-const setupAPI = async (svc, config, api) => {
+const setupAPI = async (api) => {
     if (config.state.api[api.resID] !== undefined) {
         return
     }

@@ -27,6 +27,12 @@
   "files": [
     "index.mjs",
     "cmd",
-    "internal"
-  ]
+    "internal",
+    "shared"
+  ],
+  "imports": {
+    "#env": "./env/setup.mjs",
+    "#internal": "./internal/api.mjs",
+    "#shared/*": "./deploy/shared/*.mjs"
+  }
 }
