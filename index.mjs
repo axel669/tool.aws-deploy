@@ -53,12 +53,17 @@ const config = yaml.parse(
 const deployType = {
     lambda: async (id, config) => {
         const funcInfo = config.functions[id]
+        await cmds.setup.lambda(svc, config, funcInfo)
         await cmds.deploy.lambda(svc, config, funcInfo)
     },
     s3: async (id, config) => {
         const bucketInfo = config.buckets[id]
         await cmds.deploy.s3(svc, config, bucketInfo)
-    }
+    },
+    api: async (id, config) => {
+        const bucketInfo = config.apis[id]
+        await cmds.deploy.api(svc, config, bucketInfo)
+    },
 }
 const commands = {
     setup: async () => {

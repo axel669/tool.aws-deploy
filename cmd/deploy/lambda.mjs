@@ -93,14 +93,10 @@ const updatePolicy = async (svc, func, policy) => {
 }
 
 const updateAlias = async (svc, config, func, codeSHA) => {
-    const depInfo = config.deployment.lambda ?? {}
-
     const skipUpdate = (
         config.full === false
-        || (
-            depInfo.newAlias === undefined
-            && depInfo.updateAlias === undefined
-        )
+        || config.deployment.alias === undefined
+        || config.deployment.tag === undefined
     )
     if (skipUpdate === true) {
         console.log("Skipping alias update")
@@ -116,13 +112,25 @@ const updateAlias = async (svc, config, func, codeSHA) => {
     await svc.lambda.createAlias({
         FunctionName: func,
         FunctionVersion: versionInfo.Version,
-        Name: depInfo.newAlias.replace(/\./g, "-")
+        Name: config.deployment.tag.replace(/\./g, "-")
     })
-    await svc.lambda.updateAlias({
+    const alias = await svc.lambda.getAlias({
+        FunctionName: func,
+        Name: config.deployment.alias
+    })
+
+    const aliasInfo = {
         FunctionName: func,
         FunctionVersion: versionInfo.Version,
-        Name: depInfo.updateAlias
-    })
+        Name: config.deployment.alias.replace(/\./g, "-")
+    }
+    if (alias === null) {
+        console.log(`Creating alias: ${aliasInfo.Name}`)
+        await svc.lambda.createAlias(aliasInfo)
+        return
+    }
+
+    await svc.lambda.updateAlias(aliasInfo)
 }
 
 const deployLambda = async (svc, config, args) => {

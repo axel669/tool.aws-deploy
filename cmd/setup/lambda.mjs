@@ -82,15 +82,6 @@ const setupLambda = async (svc, config, args) => {
         )
 
         await createFunc(svc, roleInfo, func, runtime)
-
-        for (const alias of config.lambda.alias ?? []) {
-            console.log(`Creating alias: ${alias}`)
-            await svc.lambda.createAlias({
-                FunctionName: func,
-                FunctionVersion: "$LATEST",
-                Name: alias.replace(/\./g, "-")
-            })
-        }
     }
 
     return funcInfo
