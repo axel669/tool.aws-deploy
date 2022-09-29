@@ -1,16 +1,32 @@
-import setupLambda from "./setup/lambda.mjs"
-import setupBucket from "./setup/s3.mjs"
+import fs from "fs/promises"
+import url from "url"
+import path from "path"
 
-import deployLambda from "./deploy/lambda.mjs"
-import deployS3 from "./deploy/s3.mjs"
+const root = path.dirname(
+    url.fileURLToPath(import.meta.url)
+)
 
-export default {
-    setup: {
-        lambda: setupLambda,
-        s3: setupBucket,
-    },
-    deploy: {
-        lambda: deployLambda,
-        s3: deployS3,
-    }
+const targets = await fs.readdir(
+    path.resolve(root, "deploy")
+)
+const cmds = {
+    setup: {},
+    deploy: {},
 }
+for (const target of targets) {
+    const key = target.slice(0, -4)
+    const setupLib = await import(
+        url.pathToFileURL(
+            path.resolve(root, "setup", target)
+        )
+    )
+    const deployLib = await import(
+        url.pathToFileURL(
+            path.resolve(root, "deploy", target)
+        )
+    )
+    cmds.setup[key] = setupLib.default
+    cmds.deploy[key] = deployLib.default
+}
+
+export default cmds
