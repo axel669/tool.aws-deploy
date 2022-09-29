@@ -21,6 +21,7 @@
     "adm-zip": "^0.5.9",
     "fast-glob": "^3.2.11",
     "mime-types": "^2.1.35",
+    "node-fetch": "^3.2.10",
     "yaml": "^2.1.0"
   },
   "files": [

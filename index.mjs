@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
 import fs from "fs/promises"
+import { Response } from "node-fetch"
 
 import yaml from "yaml"
 import Service from "./internal/api.mjs"
@@ -58,25 +59,16 @@ const deployType = {
     },
     s3: async (id, config) => {
         const bucketInfo = config.buckets[id]
+        await cmds.setup.s3(svc, config, bucketInfo)
         await cmds.deploy.s3(svc, config, bucketInfo)
     },
     api: async (id, config) => {
-        const bucketInfo = config.apis[id]
-        await cmds.deploy.api(svc, config, bucketInfo)
+        const apiInfo = {...config.apis[id], resID: id}
+        await cmds.setup.apig(svc, config, apiInfo)
+        await cmds.deploy.apig(svc, config, apiInfo)
     },
 }
 const commands = {
-    setup: async () => {
-        const functions = Object.values(config.functions ?? {})
-        const buckets = Object.values(config.buckets ?? {})
-
-        for (const funcInfo of functions) {
-            await cmds.setup.lambda(svc, config, funcInfo)
-        }
-        for (const bucketInfo of buckets) {
-            await cmds.setup.s3(svc, config, bucketInfo)
-        }
-    },
     "dev-deploy": async () => {
         config.full = false
         for (const target of targets) {
@@ -110,4 +102,23 @@ const svc = await Service({
     profile: config.profile ?? "default"
 })
 
-commands[command](svc, config)
+const s3State = await svc.s3.getObject({
+    Bucket: config.deployment.bucket,
+    Key: "state.json",
+})
+config.state =
+    (s3State === null)
+    ? {}
+    : await new Response(s3State.Body).json()
+
+config.state.api = config.state.api ?? {}
+config.state.lambda = config.state.lambda ?? {}
+config.state.s3 = config.state.s3 ?? {}
+
+await commands[command](svc, config)
+console.log("Cleaning up")
+await svc.s3.putObject({
+    Bucket: config.deployment.bucket,
+    Key: "state.json",
+    Body: JSON.stringify(config.state)
+})

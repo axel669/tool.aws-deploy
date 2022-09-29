@@ -18,6 +18,10 @@ const s3 = wrap(
             error: "NoSuchBucketWebsite",
             default: null
         },
+        getObject: {
+            error: "NoSuchKey",
+            default: null
+        },
     }
 )
 
