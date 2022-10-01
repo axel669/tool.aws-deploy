@@ -19,6 +19,10 @@ const lambda = wrap(
             error: "ResourceNotFoundException",
             default: null
         },
+        getPolicy: {
+            error: "ResourceNotFoundException",
+            default: null
+        },
     }
 )
 

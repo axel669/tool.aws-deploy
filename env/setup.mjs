@@ -59,7 +59,11 @@ const s3State = await svc.s3.getObject({
 })
 const state =
     (s3State === null)
-        ? {}
+        ? {
+            api: {},
+            lambda: {},
+            s3: {}
+        }
         : await new Response(s3State.Body).json()
 
 state.api = state.api ?? {}

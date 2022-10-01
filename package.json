@@ -26,9 +26,10 @@
   },
   "files": [
     "index.mjs",
-    "cmd",
+    "deploy",
     "internal",
-    "shared"
+    "env",
+    "validate"
   ],
   "imports": {
     "#env": "./env/setup.mjs",

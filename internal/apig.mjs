@@ -9,6 +9,10 @@ const apig = wrap(
     APIG,
     APIGClient,
     {
+        getStage: {
+            error: "NotFoundException",
+            default: null,
+        }
     }
 )
 

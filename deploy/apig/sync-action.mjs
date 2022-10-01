@@ -1,10 +1,10 @@
-import { svc } from "#env"
+import { svc, config } from "#env"
 
-const genActionArgs = (action) => {
+const genActionArgs = async (action) => {
     if (action.type === "http") {
         return {
             IntegrationType: "HTTP_PROXY",
-            IntegrationMethod: action.method,
+            IntegrationMethod: action.method.toUpperCase(),
             IntegrationUri: action.url,
             PayloadFormatVersion: "1.0"
         }
@@ -21,27 +21,49 @@ const genActionArgs = (action) => {
             IntegrationUri: action.arn
         }
     }
+
+    const funcName = `${config.prefix}${config.functions[action.func].name}`
+    const func = await svc.lambda.getFunction({
+        FunctionName: funcName
+    })
+
+    const suffix = (
+            action.version !== undefined
+            || action.alias !== undefined
+        )
+        ? `:${action.version ?? action.alias}`
+        : ""
+    const arn = `${func.Configuration.FunctionArn}${suffix}`
+
+    return {
+        ...baselineArgs,
+        IntegrationUri: arn,
+    }
 }
 
 const syncAction = async (state, { apiID, name, info, id }) => {
     if (info === null) {
-        // console.log(`Removing integration: ${name}`)
         await svc.apig.deleteIntegration({
             ApiId: apiID,
             IntegrationId: id,
         })
-        delete state.actions[name]
+        const key = (
+            Object.entries(state.actions)
+            .find(
+                action => action[1] === id
+            )
+            ?? []
+        )[0]
+        delete state.actions[key]
         return
     }
 
+    const actionArgs = await genActionArgs(info)
     if (id === undefined) {
         console.log(`Creating integration: ${name}`)
         const intInfo = await svc.apig.createIntegration({
             ApiId: apiID,
-            IntegrationType: "HTTP_PROXY",
-            IntegrationMethod: info.method,
-            IntegrationUri: info.url,
-            PayloadFormatVersion: "1.0"
+            ...actionArgs
         })
         state.actions[name] = intInfo.IntegrationId
         return
@@ -51,7 +73,23 @@ const syncAction = async (state, { apiID, name, info, id }) => {
         ApiId: apiID,
         IntegrationId: id
     })
-    console.log(current)
+
+    const shouldUpdate = (
+        current.IntegrationType !== actionArgs.IntegrationType
+        || current.IntegrationMethod !== actionArgs.IntegrationMethod
+        || current.IntegrationUri !== actionArgs.IntegrationUri
+        || current.PayloadFormatVersion !== actionArgs.PayloadFormatVersion
+    )
+    if (shouldUpdate === false) {
+        return
+    }
+
+    console.log(`Updating integration: ${name}`)
+    await svc.apig.updateIntegration({
+        ApiId: apiID,
+        IntegrationId: id,
+        ...actionArgs,
+    })
 }
 
 export default syncAction

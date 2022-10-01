@@ -47,5 +47,5 @@ console.log("Cleaning up")
 await svc.s3.putObject({
     Bucket: config.deployment.bucket,
     Key: "state.json",
-    Body: JSON.stringify(state)
+    Body: JSON.stringify(state, null, 4)
 })

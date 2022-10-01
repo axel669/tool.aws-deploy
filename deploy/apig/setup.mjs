@@ -1,7 +1,8 @@
-import { logging } from "../../internal/api.mjs"
+import { state, svc } from "#env"
+import { logging } from "#internal"
 
 const setupAPI = async (api) => {
-    if (config.state.api[api.resID] !== undefined) {
+    if (state.api[api.resID] !== undefined) {
         return
     }
 
@@ -10,10 +11,11 @@ const setupAPI = async (api) => {
         Name: api.name,
         ProtocolType: "HTTP",
     })
-    config.state.api[api.resID] = {
+    state.api[api.resID] = {
         id: apiInfo.ApiId,
         actions: {},
-        routes: {}
+        routes: {},
+        policy: [],
     }
 }
 
