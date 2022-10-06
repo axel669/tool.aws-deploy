@@ -1,6 +1,6 @@
 {
   "name": "@axel669/aws-deploy",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "",
   "main": "index.mjs",
   "type": "module",
@@ -16,6 +16,7 @@
     "@aws-sdk/client-apigatewayv2": "^3.95.0",
     "@aws-sdk/client-iam": "^3.118.0",
     "@aws-sdk/client-lambda": "^3.90.0",
+    "@aws-sdk/client-resource-groups-tagging-api": "^3.183.0",
     "@aws-sdk/client-s3": "^3.92.0",
     "@aws-sdk/client-sts": "^3.130.0",
     "adm-zip": "^0.5.9",
@@ -34,6 +35,6 @@
   "imports": {
     "#env": "./env/setup.mjs",
     "#internal": "./internal/api.mjs",
-    "#shared/*": "./deploy/shared/*.mjs"
+    "#shared/*": "./lib/$shared/*.mjs"
   }
 }
