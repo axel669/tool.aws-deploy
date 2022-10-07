@@ -10,7 +10,13 @@ const wrapAWSCall = (source, func, errorInfo) => {
         }
         catch (err) {
             const isAllowedError = (
-                err.name === error
+                (
+                    //  double name check is needed because amazon can't be
+                    //  bothered to make the exceptions consistent between
+                    //  libraries, or within them
+                    err.name === `${error}Exception`
+                    || err.name === error
+                )
                 && (
                     message === undefined
                     || err.message === message

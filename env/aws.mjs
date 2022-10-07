@@ -12,7 +12,7 @@ const aws = {
         libName: "@aws-sdk/client-apigatewayv2",
         modify: {
             getStage: {
-                error: "NotFoundException",
+                error: "NotFound",
                 default: null,
             }
         }
@@ -36,20 +36,20 @@ const aws = {
         libName: "@aws-sdk/client-lambda",
         modify: {
             getFunction: {
-                error: "ResourceNotFoundException",
+                error: "ResourceNotFound",
                 default: null
             },
             createFunction: {
-                error: "InvalidParameterValueException",
+                error: "InvalidParameterValue",
                 message: "The role defined for the function cannot be assumed by Lambda.",
                 default: null,
             },
             getAlias: {
-                error: "ResourceNotFoundException",
+                error: "ResourceNotFound",
                 default: null
             },
             getPolicy: {
-                error: "ResourceNotFoundException",
+                error: "ResourceNotFound",
                 default: null
             },
         }
