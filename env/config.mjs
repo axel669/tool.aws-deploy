@@ -58,6 +58,11 @@ const fname = (action) => {
         return null
     }
     const { func } = action
+
+    if (func.startsWith("@") === true) {
+        return func.slice(1)
+    }
+
     const { prefix, functions } = config
     return `${prefix}${functions[func].name}${suffix(action)}`
 }
