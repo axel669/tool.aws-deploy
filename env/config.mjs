@@ -7,12 +7,12 @@ const envFile = process.argv[2]
 
 if (envFile === undefined) {
     console.log("env file not provided (or '-')")
-    process.exit(0)
+    process.exit(1)
 }
-// if (process.argv.length < 4) {
-//     console.log("command not provided")
-//     process.exit(0)
-// }
+if (process.argv.length < 4) {
+    console.log("command not provided")
+    process.exit(1)
+}
 
 const flat = (obj, parent = "") =>
     Object.entries(obj)
@@ -78,6 +78,73 @@ const fname = (action) => {
     return `${prefix}${functions[func].name}${suffix(action)}`
 }
 
+const validate = joker.validator({
+    itemName: "config",
+    root: {
+        "?profile": "string",
+        "region": "string",
+        "prefix": "string",
+        "?tags{}": "string",
+        "?functions{}": {
+            name: "string",
+            dir: "string",
+            runtime: "string",
+            "?memory": "int",
+            "?timeout": "int",
+            "?handler": "string",
+        },
+        "?apis{}": {
+            name: "string",
+            stage: "string",
+            "?auth{}": {
+                type: "string",
+                func: "string",
+                "idSource[]": "string",
+                "?cache": "int",
+            },
+            "integrations{}": {
+                "joker.type": "conditional",
+                condition: (item) => item.type,
+                "http": {
+                    "url": "string",
+                    "method": "string",
+                },
+                "function": {
+                    func: "string",
+                    "?alias": "string"
+                }
+            },
+            "routes{}": {
+                "action": "string",
+                "?auth": "string",
+            }
+        },
+        "?buckets{}": {
+            name: "string",
+            dir: "string",
+            "?policy": "array",
+            "?website": {
+                "index": "string",
+                "?error": "string"
+            }
+        },
+    }
+})
+
+const configValid = validate(config)
+
+if (configValid !== true) {
+    configValid.forEach(
+        result => console.log(result.message)
+    )
+    process.exit(2)
+}
+
+if (process.argv[3] === "validate-config") {
+    console.log("Configuration is valid")
+    process.exit(0)
+}
+
 for (const [key, func] of Object.entries(config.functions ?? {})) {
     func.lname = `${config.prefix}${func.name}`
     func.key = key
@@ -106,20 +173,5 @@ config.awsTags = Object.fromEntries(
         ]
     )
 )
-
-// const validate = joker.validator({
-//     itemName: "config",
-//     root: {
-//         "?profile": "string",
-//         "region": "string",
-//         "prefix": "string",
-//         "?tags": "object",
-//     }
-// })
-
-// console.log(config)
-// console.log(
-//     validate(config)
-// )
 
 export default config

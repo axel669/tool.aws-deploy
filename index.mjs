@@ -9,11 +9,6 @@ import { config } from "#env"
 
 const [command, ...targets] = process.argv.slice(3)
 
-if (process.argv.length < 4) {
-    console.log("command not provided")
-    process.exit(0)
-}
-
 global.implement = (feature) => console.error(
     new Error(`Implement: ${feature}`)
 )
