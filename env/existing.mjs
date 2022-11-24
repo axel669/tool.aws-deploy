@@ -34,6 +34,7 @@ const areduce = async (source, acc) => {
     return dest
 }
 
+console.log("Scanning AWS for deployed resources...")
 const resources = await aws.tags.getResources({
     TagFilters: Object.entries(config.awsTags).map(
         ([Key, value]) => ({ Key, Values: [value] })

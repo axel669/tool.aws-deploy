@@ -1,7 +1,18 @@
 import fs from "fs/promises"
 import yaml from "yaml"
 
+import joker from "@axel669/joker"
+
 const envFile = process.argv[2]
+
+if (envFile === undefined) {
+    console.log("env file not provided (or '-')")
+    process.exit(0)
+}
+// if (process.argv.length < 4) {
+//     console.log("command not provided")
+//     process.exit(0)
+// }
 
 const flat = (obj, parent = "") =>
     Object.entries(obj)
@@ -95,5 +106,20 @@ config.awsTags = Object.fromEntries(
         ]
     )
 )
+
+// const validate = joker.validator({
+//     itemName: "config",
+//     root: {
+//         "?profile": "string",
+//         "region": "string",
+//         "prefix": "string",
+//         "?tags": "object",
+//     }
+// })
+
+// console.log(config)
+// console.log(
+//     validate(config)
+// )
 
 export default config
