@@ -117,11 +117,19 @@ const validate = joker.validator({
             "routes{}": {
                 "action": "string",
                 "?auth": "string",
+            },
+            "?stageVars{}": {
+                "joker.type": "string",
+                format: /^[A-Za-z0-9-._~:/?#&=, ]*$/,
             }
         },
         "?buckets{}": {
             name: "string",
             dir: "string",
+            "?prefix": {
+                "joker.type": "string",
+                format: /^([a-zA-Z0-9_\$\- \.]+\/)+$/
+            },
             "?policy": "array",
             "?website": {
                 "index": "string",

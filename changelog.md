@@ -1,3 +1,7 @@
+## 0.3.7
+- added api gateway stage variables
+- added support for prefixed files in s3 deployments
+
 ## 0.3.6
 - output when searching aws resources
 - fixed bug when deployment wasnt present where lambda alias udpate would throw
