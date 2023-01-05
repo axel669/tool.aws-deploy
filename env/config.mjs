@@ -45,12 +45,17 @@ const env = Object.fromEntries(
 const config = yaml.parse(
     await fs.readFile("aws-deploy.yml", "utf8"),
     function (key, value) {
-        if (typeof value === "string" && value.startsWith("$$") === true) {
-            const name = value.slice(2)
-            if (env.hasOwnProperty(name) === true) {
-                return env[name]
+        if (typeof value === "string") {
+            const interpolated = value.replace(
+                /\$\{([a-zA-Z0-9_\-\$\.]+)\}/g,
+                (_, name) => {
+                    return env[name] ?? process.env[name]
+                }
+            )
+            if (interpolated === "undefined") {
+                return undefined
             }
-            return process.env[name]
+            return interpolated
         }
         return value
     }
@@ -74,8 +79,8 @@ const fname = (action) => {
         return func.slice(1)
     }
 
-    const { prefix, functions } = config
-    return `${prefix}${functions[func].name}${suffix(action)}`
+    const { prefix, lambda } = config
+    return `${prefix}${lambda[func].name}${suffix(action)}`
 }
 
 const validate = joker.validator({
@@ -85,7 +90,7 @@ const validate = joker.validator({
         "region": "string",
         "prefix": "string",
         "?tags{}": "string",
-        "?functions{}": {
+        "?lambda{}": {
             name: "string",
             dir: "string",
             runtime: "string",
@@ -93,7 +98,7 @@ const validate = joker.validator({
             "?timeout": "int",
             "?handler": "string",
         },
-        "?apis{}": {
+        "?apig{}": {
             name: "string",
             stage: "string",
             "?auth{}": {
@@ -102,7 +107,7 @@ const validate = joker.validator({
                 "idSource[]": "string",
                 "?cache": "int",
             },
-            "integrations{}": {
+            "actions{}": {
                 "joker.type": "conditional",
                 condition: (item) => item.type,
                 "http": {
@@ -123,7 +128,7 @@ const validate = joker.validator({
                 format: /^[A-Za-z0-9-._~:/?#&=, ]*$/,
             }
         },
-        "?buckets{}": {
+        "?s3{}": {
             name: "string",
             dir: "string",
             "?prefix": {
@@ -149,17 +154,20 @@ if (configValid !== true) {
 }
 
 if (process.argv[3] === "validate-config") {
+    console.log(
+        JSON.stringify(config, null,  2)
+    )
     console.log("Configuration is valid")
     process.exit(0)
 }
 
-for (const [key, func] of Object.entries(config.functions ?? {})) {
+for (const [key, func] of Object.entries(config.lambda ?? {})) {
     func.lname = `${config.prefix}${func.name}`
     func.key = key
 }
-for (const [key, api] of Object.entries(config.apis ?? {})) {
+for (const [key, api] of Object.entries(config.apig ?? {})) {
     api.key = key
-    for (const [key, action] of Object.entries(api.integrations)) {
+    for (const [key, action] of Object.entries(api.actions)) {
         action.lname = fname(action)
         action.key = key
     }

@@ -41,9 +41,9 @@ const cmds = Object.fromEntries(
 */
 
 const readConfig = {
-    lambda: (id) => config.functions[id],
-    s3: (id) => config.buckets[id],
-    apig: (id) => ({ ...config.apis[id], resID: id }),
+    lambda: (id) => config.lambda[id],
+    s3: (id) => config.s3[id],
+    apig: (id) => ({ ...config.apig[id], resID: id }),
 }
 const deploy = async (target) => {
     const [type, id] = target.split(":")
@@ -75,6 +75,7 @@ const commands = {
             await remove(target)
         }
     },
+    list: () => {}
 }
 
 if (command === "help") {

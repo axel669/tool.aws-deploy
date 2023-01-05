@@ -11,7 +11,7 @@ const serviceTransform = {
     apigateway: async (parts) => {
         const [, , id] = parts[5].split("/")
         const awsAPI = await aws.apig.getApi({ ApiId: id })
-        const source = config.apis?.[awsAPI.Description] ?? {}
+        const source = config.apig?.[awsAPI.Description] ?? {}
         source.awsID = id
         return [`apig:${id}`, true]
     },

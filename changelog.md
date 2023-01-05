@@ -1,3 +1,11 @@
+## 0.4.0
+- changed top level config keys to match deploy command service keys
+- improved variable injection rules (now allows injection into middle of values)
+- changed api gateway `integrations` to `actions` to match the route terms
+- changed order of api gateway changes to prevent weird issues with aws checking
+    variables in routes coupled with actions
+- updated readme docs
+
 ## 0.3.7
 - added api gateway stage variables
 - added support for prefixed files in s3 deployments
