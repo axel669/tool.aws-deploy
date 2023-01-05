@@ -1,3 +1,6 @@
+## 0.4.1
+- updated joker to correct config validation bug
+
 ## 0.4.0
 - changed top level config keys to match deploy command service keys
 - improved variable injection rules (now allows injection into middle of values)
