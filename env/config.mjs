@@ -48,8 +48,8 @@ const config = yaml.parse(
         if (typeof value === "string") {
             const interpolated = value.replace(
                 /\$\{([a-zA-Z0-9_\-\$\.]+)\}/g,
-                (_, name) => {
-                    return env[name] ?? process.env[name]
+                (match, name) => {
+                    return env[name] ?? process.env[name] ?? match
                 }
             )
             if (interpolated === "undefined") {

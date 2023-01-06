@@ -1,3 +1,7 @@
+## 0.4.2
+- bugfix in interpolation strings that were consuming aws variables
+- bucket tagging working again
+
 ## 0.4.1
 - updated joker to correct config validation bug
 
