@@ -3,7 +3,7 @@ import awsService from "./aws-service.mjs"
 
 const service = awsService({
     region: config.region,
-    profile: config.profile ?? "default",
+    profile: config.profile
 })
 
 const aws = {

@@ -1,3 +1,8 @@
+## 0.4.3
+- went back to the older subsitution syntax, but now supported with the full
+    string processing instead of the basic version it was in earlier versions
+- removed the `prefix` config item, lambdas will now need full names
+
 ## 0.4.2
 - bugfix in interpolation strings that were consuming aws variables
 - bucket tagging working again

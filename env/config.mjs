@@ -47,9 +47,9 @@ const config = yaml.parse(
     function (key, value) {
         if (typeof value === "string") {
             const interpolated = value.replace(
-                /\$\{([a-zA-Z0-9_\-\$\.]+)\}/g,
-                (match, name) => {
-                    return env[name] ?? process.env[name] ?? match
+                /\$\$([a-zA-Z0-9_\-\$\.]+)/g,
+                (_, name) => {
+                    return env[name] ?? process.env[name]
                 }
             )
             if (interpolated === "undefined") {
@@ -79,8 +79,8 @@ const fname = (action) => {
         return func.slice(1)
     }
 
-    const { prefix, lambda } = config
-    return `${prefix}${lambda[func].name}${suffix(action)}`
+    const { lambda } = config
+    return `${lambda[func].name}${suffix(action)}`
 }
 
 const validate = joker.validator({
@@ -88,7 +88,6 @@ const validate = joker.validator({
     root: {
         "?profile": "string",
         "region": "string",
-        "prefix": "string",
         "?tags{}": "string",
         "?lambda{}": {
             name: "string",
@@ -162,7 +161,6 @@ if (process.argv[3] === "validate-config") {
 }
 
 for (const [key, func] of Object.entries(config.lambda ?? {})) {
-    func.lname = `${config.prefix}${func.name}`
     func.key = key
 }
 for (const [key, api] of Object.entries(config.apig ?? {})) {
