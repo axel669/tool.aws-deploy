@@ -129,7 +129,7 @@ const validate = joker.validator({
         },
         "?s3{}": {
             name: "string",
-            dir: "string",
+            "?dir": "string",
             "?prefix": {
                 "joker.type": "string",
                 format: /^([a-zA-Z0-9_\$\- \.]+\/)+$/

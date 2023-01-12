@@ -1,3 +1,7 @@
+## 0.4.4
+- s3 bucket acls disabled by default now
+- s3 source dir now optional, no file sync if not defined
+
 ## 0.4.3
 - went back to the older subsitution syntax, but now supported with the full
     string processing instead of the basic version it was in earlier versions
