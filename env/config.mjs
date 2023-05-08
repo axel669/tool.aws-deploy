@@ -160,6 +160,18 @@ if (process.argv[3] === "validate-config") {
     process.exit(0)
 }
 
+for (const target of process.argv.slice(4)) {
+    const [svc, id] = target.split(":")
+    if (config[svc] === undefined) {
+        console.log(`${svc} is not defined in config file.`)
+        process.exit(0)
+    }
+    if (config[svc][id] === undefined) {
+        console.log(`Resource ${id} is not defined in ${svc} config section.`)
+        process.exit(0)
+    }
+}
+
 for (const [key, func] of Object.entries(config.lambda ?? {})) {
     func.key = key
 }
