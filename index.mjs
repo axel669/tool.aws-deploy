@@ -58,6 +58,7 @@ const remove = async (target) => {
 const commands = {
     deploy: async (targetList) => {
         if (targetList.length === 0) {
+            console.log("No deploy targets given")
             return
         }
         const full = targetList[0] === "all"
