@@ -1,11 +1,12 @@
 import fs from "fs/promises"
 import yaml from "yaml"
+import frontMatter from "yaml-front-matter"
 
 import joker from "@axel669/joker"
 
-const envFile = process.argv[2]
+const envName = process.argv[2]
 
-if (envFile === undefined) {
+if (envName === undefined) {
     console.log("env file not provided (or '-')")
     process.exit(1)
 }
@@ -31,20 +32,8 @@ const flat = (obj, parent = "") =>
             },
             []
         )
-
-const env = Object.fromEntries(
-    flat(
-        (envFile === "-")
-            ? {}
-            : yaml.parse(
-                await fs.readFile(envFile, "utf8")
-            )
-    )
-)
-
-const config = yaml.parse(
-    await fs.readFile("aws-deploy.yml", "utf8"),
-    function (key, value) {
+const hydration = (env) =>
+    function (_, value) {
         if (typeof value === "string") {
             const interpolated = value.replace(
                 /\$\$([a-zA-Z0-9_\-\$\.]+)/g,
@@ -59,6 +48,22 @@ const config = yaml.parse(
         }
         return value
     }
+
+const configText = await fs.readFile("aws-deploy.yml", "utf8")
+
+const envInfo = frontMatter.loadFront(configText)
+
+const envHydrate = hydration({})
+const env = Object.fromEntries(
+    flat(envName === "-" ? {} : envInfo[envName])
+        .map(
+            ([key, value]) => [key, envHydrate(null, value)]
+        )
+)
+
+const config = yaml.parse(
+    envInfo.__content,
+    hydration(env)
 )
 
 const suffix = (action) => {

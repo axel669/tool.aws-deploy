@@ -2,18 +2,18 @@
 
 ## Commands
 ```bash
-aws-deploy <env-file> <command> <...targets>
+aws-deploy <env> <command> <...targets>
 
-aws-deploy dev.yml deploy
+aws-deploy dev deploy
 aws-deploy - deploy
 ```
 
-`env-file` is a path to a yml file with any set of values in it, or `-` for no
-env file.
+`env` is the name of an environment optionally defined in the aws-deploy.yml
+file, or `-` if no configured variables are needed.
 
 - deploy
   > deploys the listed targets, or iterates over the deployment.resources list
-  > if no targets are specified
+  > if target is `all`
 - list
   > lists the resources that have been deployed in the current environment based
   > on the tags provided in the config file
@@ -34,14 +34,24 @@ prefix and `id` is the key within the config file in the resources.
 ## Config File
 > Must be named `aws-deploy.yml`
 
-Config file can use environment variables with `${<env-var>}`.
-Config file can use values from the env file with `${.<env-file-var-path>}`.
+Config file can use environment variables with `${<system environment variable>}`.
+Config file can use values from the front matter env with `${.<env variable>}`.
 
 Env vars will be interpolated for any string value (NOT keys). If the var
 substitution results in the full value being `"undefined"`, it will be treated
 as an empty value.
 
 ```yaml
+# front matter environments
+---
+dev:
+  bucket:
+    name: $$DEV_BUCKET
+live:
+  bucket:
+    name: $$PROD_BUCKET
+---
+
 # AWS profile name
 profile: default
 # AWS region
