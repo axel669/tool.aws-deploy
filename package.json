@@ -1,6 +1,6 @@
 {
   "name": "@axel669/aws-deploy",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "",
   "main": "index.mjs",
   "type": "module",
@@ -21,6 +21,7 @@
     "@aws-sdk/client-sts": "^3.328.0",
     "@axel669/joker": "^0.3.2",
     "adm-zip": "^0.5.9",
+    "deep-equal": "^2.2.1",
     "fast-glob": "^3.2.11",
     "mime-types": "^2.1.35",
     "node-fetch": "^3.2.10",

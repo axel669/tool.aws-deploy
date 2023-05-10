@@ -56,8 +56,6 @@ live:
 profile: default
 # AWS region
 region: us-west-1
-# prefix to use for resources that use unique names (like lambdas)
-prefix: test_
 
 # Lambda functions
 lambda:
@@ -89,7 +87,7 @@ s3:
     # Directory containing files to sync
     dir: source
     # Bucket name. Does not have prefix prepended
-    name: ${.bucket.name}
+    name: $$.bucket.name
     # optional prefix to use with the bucket keys
     prefix: stuff
     # optional access block settings
@@ -106,7 +104,7 @@ s3:
       Principal: "*"
       Action:
       - s3:GetObject
-      Resource: arn:aws:s3:::${.bucket.name}/*
+      Resource: arn:aws:s3:::$$.bucket.name/*
     # enable bucket website hosting. index entry is require, error is optional
     website:
       index: index.html
@@ -150,8 +148,12 @@ apig:
         method: get
       site-files:
         type: http
-        url: https://s3.us-west-1.amazonaws.com/${.bucket.name}/{page}
+        url: https://s3.us-west-1.amazonaws.com/{page}
         method: get
+        # optionally set request parameter mappings using the format
+        # [append|overwrite|remove]:[header|queryString|path].[name]: value
+        requestParams:
+          overwrite:header.host: $$.bucket.name
     # api routes
     # method needs to be capitalized, and key needs to have any route variables
     # and/or proxy
