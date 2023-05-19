@@ -1,3 +1,15 @@
+## 0.4.7
+> Includes updates from versions I forgot to write changelogs for
+- added front matter yaml environments
+- added lambda env vars
+- added api gateway cors
+- added api gateway integration parameter mapping
+- added bucket public access blocks
+- added warning for not giving targets to deploy command
+- added validation that all deploy targets are defined in the file before
+    attempting to check aws
+- removed env files
+
 ## 0.4.4
 - s3 bucket acls disabled by default now
 - s3 source dir now optional, no file sync if not defined
