@@ -102,6 +102,7 @@ const validate = joker.validator({
             "?memory": "int",
             "?timeout": "int",
             "?handler": "string",
+            "?env{}": "string",
         },
         "?apig{}": {
             name: "string",

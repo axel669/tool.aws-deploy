@@ -73,13 +73,13 @@ lambda:
     name: aws-test
     # Directory containing the code
     dir: first-func
-    # Lambda runtime, check aws for valid values
+    # Optional. Lambda runtime, check aws for valid values
     runtime: nodejs16.x
-    # Lambda memory size in MB
+    # Optional. Lambda memory size in MB
     memory: 128
-    # Lambda timeout in seconds
+    # Optional. Lambda timeout in seconds
     timeout: 4
-    # List of IAM policies (the Statement array)
+    # Optional. List of IAM policies (the Statement array)
     iam:
       - Effect: Allow
         Action:
@@ -87,6 +87,9 @@ lambda:
           - s3:PutObject
         Resource:
           - "*"
+    # Optional. Object of environment variables for the lambda
+    env:
+      tag: env/$${env}
 
 # S3 buckets
 s3:
