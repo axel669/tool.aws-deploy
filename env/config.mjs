@@ -36,7 +36,7 @@ const hydration = (env) =>
     function (_, value) {
         if (typeof value === "string") {
             const interpolated = value.replace(
-                /\$\$([a-zA-Z0-9_\-\$\.]+)/g,
+                /\$\$\{([a-zA-Z0-9_\-\$\.]+)\}/g,
                 (_, name) => {
                     return env[name] ?? process.env[name]
                 }
@@ -53,6 +53,7 @@ const configText = await fs.readFile("aws-deploy.yml", "utf8")
 
 const envInfo = frontMatter.loadFront(configText)
 
+process.env["env"] = envName
 const envHydrate = hydration({})
 const env = Object.fromEntries(
     flat(envName === "-" ? {} : envInfo[envName])

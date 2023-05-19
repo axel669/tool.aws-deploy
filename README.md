@@ -34,22 +34,30 @@ prefix and `id` is the key within the config file in the resources.
 ## Config File
 > Must be named `aws-deploy.yml`
 
-Config file can use environment variables with `${<system environment variable>}`.
-Config file can use values from the front matter env with `${.<env variable>}`.
+Config file can use environment variables with `$${<system environment variable>}`.
+Config file can use values from the front matter env with `$${.<env variable>}`.
 
 Env vars will be interpolated for any string value (NOT keys). If the var
 substitution results in the full value being `"undefined"`, it will be treated
 as an empty value.
+
+### Extra Environment Variables
+aws-deploy will also add some environment variables automatically that can be
+used in the configuration file.
+
+| Name | Description |
+| --- | --- |
+| env | The environment name from the command |
 
 ```yaml
 # front matter environments
 ---
 dev:
   bucket:
-    name: $$DEV_BUCKET
+    name: $${DEV_BUCKET}
 live:
   bucket:
-    name: $$PROD_BUCKET
+    name: $${PROD_BUCKET}
 ---
 
 # AWS profile name
@@ -87,7 +95,7 @@ s3:
     # Directory containing files to sync
     dir: source
     # Bucket name. Does not have prefix prepended
-    name: $$.bucket.name
+    name: $${.bucket.name}
     # optional prefix to use with the bucket keys
     prefix: stuff
     # optional access block settings to control if acl or policy block
@@ -102,7 +110,7 @@ s3:
       Principal: "*"
       Action:
       - s3:GetObject
-      Resource: arn:aws:s3:::$$.bucket.name/*
+      Resource: arn:aws:s3:::$${.bucket.name}/*
     # enable bucket website hosting. index entry is require, error is optional
     website:
       index: index.html
@@ -114,7 +122,7 @@ apig:
     # name of the api
     name: "AWS Deploy Test"
     # stage to deploy to
-    stage: dev
+    stage: $${env}
     stageVars:
       blep: old value
     # authorizers
@@ -151,7 +159,7 @@ apig:
         # optionally set request parameter mappings using the format
         # [append|overwrite|remove]:[header|queryString|path].[name]: value
         requestParams:
-          overwrite:header.host: $$.bucket.name
+          overwrite:header.host: $${.bucket.name}
     # api routes
     # method needs to be capitalized, and key needs to have any route variables
     # and/or proxy
@@ -168,11 +176,6 @@ apig:
 
 # Production deployment info
 deployment:
-  lambda:
-    # Alias to update with the version of the lambda deployed
-    updateAlias: live
-    # Alias to create with the version of the lambda deployed
-    newAlias: ${version}
   # Resources to deploy for production, uses the normal targets syntax
   resources:
     - "lambda:first"
