@@ -128,6 +128,20 @@ apig:
     stage: $${env}
     stageVars:
       blep: old value
+    # CORS settings for the api
+    cors:
+      origins:
+      - "*"
+      methods:
+      - GET
+      - POST
+      headers:
+      - cookie
+      - content-type
+      maxAge: 1000
+      credentials: false
+      expose:
+      - date
     # authorizers
     auth:
       test:

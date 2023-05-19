@@ -132,6 +132,14 @@ const validate = joker.validator({
             "?stageVars{}": {
                 "joker.type": "string",
                 format: /^[A-Za-z0-9-._~:/?#&=, ]*$/,
+            },
+            "?cors": {
+                "?credentials": "bool",
+                "?maxAge": "int",
+                "?expose[]": "string",
+                "?headers[]": "string",
+                "?methods[]": "string",
+                "?origins[]": "string",
             }
         },
         "?s3{}": {
