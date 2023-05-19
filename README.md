@@ -90,10 +90,8 @@ s3:
     name: $$.bucket.name
     # optional prefix to use with the bucket keys
     prefix: stuff
-    # optional access block settings
-    # if boolean, completely block or allow public access
-    blockPublic: true
-    # control if acl or policy block is in place
+    # optional access block settings to control if acl or policy block
+    # is in place for the bucket
     # any key omitted in the object defaults to true (block public access)
     blockPublic:
       policy: false

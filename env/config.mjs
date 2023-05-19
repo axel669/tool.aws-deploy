@@ -139,6 +139,10 @@ const validate = joker.validator({
                 "joker.type": "string",
                 format: /^([a-zA-Z0-9_\$\- \.]+\/)+$/
             },
+            "?blockPublic": {
+                "?acl": "bool",
+                "?policy": "bool"
+            },
             "?policy": "array",
             "?website": {
                 "index": "string",
